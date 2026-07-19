@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -161,8 +161,22 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [cursor, setCursor] = useState({ x: 50, y: 25 });
+  const [isMobile, setIsMobile] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const lightweightMotion = isMobile || Boolean(prefersReducedMotion);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 720px), (pointer: coarse)");
+    const updateDeviceMode = () => setIsMobile(mediaQuery.matches);
+
+    updateDeviceMode();
+    mediaQuery.addEventListener("change", updateDeviceMode);
+
+    return () => mediaQuery.removeEventListener("change", updateDeviceMode);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
     const updateCursor = (event: MouseEvent) => {
       setCursor({
         x: (event.clientX / window.innerWidth) * 100,
@@ -175,11 +189,12 @@ export default function Home() {
     return () => {
       window.removeEventListener("mousemove", updateCursor);
     };
-  }, []);
+  }, [isMobile]);
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
+    <MotionConfig reducedMotion={lightweightMotion ? "always" : "user"}>
     <main
       style={
         {
@@ -188,7 +203,7 @@ export default function Home() {
         } as React.CSSProperties
       }
     >
-      <div className="cursor-light" />
+      {!isMobile && <div className="cursor-light" />}
 
       <header className="navbar">
         <div className="container nav-inner">
@@ -256,12 +271,12 @@ export default function Home() {
         <div className="hero-noise" />
         <motion.div
           className="orb orb-one"
-          animate={{ x: [0, 50, 0], y: [0, -35, 0] }}
+          animate={lightweightMotion ? undefined : { x: [0, 50, 0], y: [0, -35, 0] }}
           transition={{ duration: 14, repeat: Infinity }}
         />
         <motion.div
           className="orb orb-two"
-          animate={{ x: [0, -40, 0], y: [0, 45, 0] }}
+          animate={lightweightMotion ? undefined : { x: [0, -40, 0], y: [0, 45, 0] }}
           transition={{ duration: 16, repeat: Infinity }}
         />
 
@@ -320,7 +335,7 @@ export default function Home() {
 
             <motion.div
               className="main-dashboard"
-              animate={{ y: [0, -12, 0], rotateX: [0, 2, 0] }}
+              animate={lightweightMotion ? undefined : { y: [0, -12, 0], rotateX: [0, 2, 0] }}
               transition={{ duration: 5, repeat: Infinity }}
             >
               <div className="dashboard-top">
@@ -386,7 +401,7 @@ export default function Home() {
 
             <motion.div
               className="float-card float-a"
-              animate={{ y: [0, -10, 0], rotate: [-1, 1, -1] }}
+              animate={lightweightMotion ? undefined : { y: [0, -10, 0], rotate: [-1, 1, -1] }}
               transition={{ duration: 3.8, repeat: Infinity }}
             >
               <Code2 size={21} />
@@ -398,7 +413,7 @@ export default function Home() {
 
             <motion.div
               className="float-card float-b"
-              animate={{ y: [0, 11, 0], rotate: [1, -1, 1] }}
+              animate={lightweightMotion ? undefined : { y: [0, 11, 0], rotate: [1, -1, 1] }}
               transition={{ duration: 4.2, repeat: Infinity }}
             >
               <TrendingUp size={21} />
@@ -410,7 +425,7 @@ export default function Home() {
 
             <motion.div
               className="float-card float-c"
-              animate={{ x: [0, 8, 0] }}
+              animate={lightweightMotion ? undefined : { x: [0, 8, 0] }}
               transition={{ duration: 4.6, repeat: Infinity }}
             >
               <Bot size={21} />
@@ -516,7 +531,7 @@ export default function Home() {
           >
             <motion.div
               className="orbit orbit-one"
-              animate={{ rotate: 360 }}
+              animate={lightweightMotion ? undefined : { rotate: 360 }}
               transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
             >
               <span>
@@ -532,7 +547,7 @@ export default function Home() {
 
             <motion.div
               className="orbit orbit-two"
-              animate={{ rotate: -360 }}
+              animate={lightweightMotion ? undefined : { rotate: -360 }}
               transition={{ duration: 17, repeat: Infinity, ease: "linear" }}
             >
               <span>
@@ -545,7 +560,7 @@ export default function Home() {
 
             <motion.div
               className="about-logo-card"
-              animate={{ y: [0, -11, 0] }}
+              animate={lightweightMotion ? undefined : { y: [0, -11, 0] }}
               transition={{ duration: 4.2, repeat: Infinity }}
             >
               <Image
@@ -1074,7 +1089,7 @@ export default function Home() {
               <Mail size={16} /> prathamgaur2005@gmail.com
             </a>
             <span>
-              <MapPin size={16} /> India
+              <MapPin size={16} /> Lucknow, India
             </span>
           </div>
         </div>
@@ -1095,5 +1110,6 @@ export default function Home() {
         <MessageCircle />
       </a>
     </main>
+    </MotionConfig>
   );
 }
